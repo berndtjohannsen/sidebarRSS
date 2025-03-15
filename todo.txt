@@ -1,0 +1,9 @@
+- config x
+- icon does not work
+- limit to x latest
+- description for each item
+- stay across browser tabs
+- also read from web pages (login?)
+
+works
+https://feeds.npr.org/510298/podcast.xml

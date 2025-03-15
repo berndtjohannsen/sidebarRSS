@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Simple RSS Audio Reader",
+  "version": "1.2",
+  "description": "Enter RSS sources, play audio files directly, and store sources in the browser.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://*/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}

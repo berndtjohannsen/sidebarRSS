@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RSS Audio Reader</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 10px; }
+    input, button { margin: 5px 0; }
+    ul { list-style: none; padding: 0; }
+  </style>
+</head>
+<body>
+  <h3>RSS Audio Reader</h3>
+  <input id="rssInput" type="text" placeholder="Enter RSS feed URL" />
+  <button id="addRss">Add Feed</button>
+  <h4>Feeds:</h4>
+  <ul id="rssList"></ul>
+  <h4>Audio Files:</h4>
+  <ul id="audioList"></ul>
+  <script src="popup.js"></script>
+</body>
+</html>
