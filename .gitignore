@@ -1,0 +1,7 @@
+# Cursor config
+.cursor.config
+
+# Other common files to ignore
+node_modules/
+.DS_Store
+*.log 
