@@ -67,28 +67,21 @@
       margin-bottom: 5px;
     }
     #detachButton {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      padding: 5px;
+      padding: 8px 15px;
       background: #4CAF50;
       color: white;
       border: none;
-      border-radius: 3px;
+      border-radius: 4px;
       cursor: pointer;
+      margin-bottom: 15px;
+    }
+    #detachButton:hover {
+      background-color: #45a049;
     }
     .input-group {
       display: flex;
       gap: 10px;
       margin-bottom: 15px;
-    }
-    #controls {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-    #keepOpenButton {
-      background: #ff9800;
     }
     #rssList {
       margin-bottom: 15px;
@@ -114,10 +107,7 @@
     <input type="text" id="rssInput" placeholder="Enter RSS feed URL">
     <button id="addRss">Add Feed</button>
   </div>
-  <div id="controls">
-    <button id="detachButton">Detach Player</button>
-    <button id="keepOpenButton">Keep Open</button>
-  </div>
+  <button id="detachButton">Detach Player</button>
   <h3>RSS Audio Reader</h3>
   <ul id="rssList"></ul>
   <h4>Audio Files:</h4>
