@@ -5,19 +5,127 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RSS Audio Reader</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 10px; }
-    input, button { margin: 5px 0; }
-    ul { list-style: none; padding: 0; }
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 10px;
+      min-width: 300px;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    input, button { 
+      margin: 5px 0; 
+    }
+    ul { 
+      list-style: none; 
+      padding: 0; 
+    }
+    .audio-control {
+      background: none;
+      border: none;
+      font-size: 1.5em;
+      cursor: pointer;
+      padding: 5px;
+    }
+    .audio-control:hover {
+      opacity: 0.8;
+    }
+    #rssInput {
+      width: 100%;
+      padding: 5px;
+      box-sizing: border-box;
+    }
+    #addRss {
+      width: 100%;
+      padding: 5px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    #addRss:hover {
+      background-color: #45a049;
+    }
+    li {
+      margin: 10px 0;
+      padding: 5px;
+      border-bottom: 1px solid #eee;
+    }
+    #audioPlayer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #f8f8f8;
+      padding: 10px;
+      border-top: 1px solid #ddd;
+      display: none;
+    }
+    #nowPlaying {
+      font-size: 0.8em;
+      color: #666;
+      margin-bottom: 5px;
+    }
+    #detachButton {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 5px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    #controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    #keepOpenButton {
+      background: #ff9800;
+    }
+    #rssList {
+      margin-bottom: 15px;
+      padding-left: 20px;
+    }
+    #audioList {
+      border-top: 1px solid #eee;
+      padding-top: 15px;
+    }
+    .audio-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .audio-title {
+      flex: 1;
+    }
   </style>
 </head>
 <body>
+  <div class="input-group">
+    <input type="text" id="rssInput" placeholder="Enter RSS feed URL">
+    <button id="addRss">Add Feed</button>
+  </div>
+  <div id="controls">
+    <button id="detachButton">Detach Player</button>
+    <button id="keepOpenButton">Keep Open</button>
+  </div>
   <h3>RSS Audio Reader</h3>
-  <input id="rssInput" type="text" placeholder="Enter RSS feed URL" />
-  <button id="addRss">Add Feed</button>
-  <h4>Feeds:</h4>
   <ul id="rssList"></ul>
   <h4>Audio Files:</h4>
-  <ul id="audioList"></ul>
+  <div id="audioList"></div>
+  <div id="audioPlayer">
+    <div id="nowPlaying"></div>
+    <audio id="player" controls style="width: 100%"></audio>
+  </div>
   <script src="popup.js"></script>
 </body>
 </html>
