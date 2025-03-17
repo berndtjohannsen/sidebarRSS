@@ -1,7 +1,6 @@
 - config x
-- nicer icon (can baerly see it)
 - limit to x latest
-- stay across browser tabs
+
 - also read from web pages (login?)
 
 works
