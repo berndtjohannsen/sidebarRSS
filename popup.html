@@ -63,6 +63,7 @@
     #audioList {
       border-top: 1px solid #eee;
       padding-top: 15px;
+      margin-bottom: 15px;
     }
     .audio-item {
       display: flex;
@@ -72,6 +73,27 @@
     }
     .audio-title {
       flex: 1;
+    }
+    #playerContainer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #f8f8f8;
+      padding: 10px;
+      border-top: 1px solid #ddd;
+      margin: 0;
+    }
+    #nowPlaying {
+      font-size: 0.9em;
+      color: #666;
+      margin-bottom: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #player {
+      width: 100%;
     }
   </style>
 </head>
@@ -84,6 +106,10 @@
   <ul id="rssList"></ul>
   <h4>Audio Files:</h4>
   <div id="audioList"></div>
+  <div id="playerContainer">
+    <div id="nowPlaying"></div>
+    <audio id="player" controls></audio>
+  </div>
   <script src="popup.js"></script>
 </body>
 </html>
