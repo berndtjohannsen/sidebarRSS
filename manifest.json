@@ -9,7 +9,6 @@
     "128": "icon128.png"
   },
   "action": {
-    "default_popup": "popup.html",
     "default_icon": {
       "16": "icon16.png",
       "48": "icon48.png",
@@ -18,7 +17,8 @@
   },
   "permissions": [
     "storage",
-    "tabs"
+    "tabs",
+    "windows"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -27,7 +27,7 @@
     "service_worker": "background.js"
   },
   "web_accessible_resources": [{
-    "resources": ["player.html"],
+    "resources": ["popup.html", "player.html"],
     "matches": ["<all_urls>"]
   }]
 }

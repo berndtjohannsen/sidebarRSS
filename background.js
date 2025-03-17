@@ -31,3 +31,32 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 });
+
+// Handle extension icon click
+chrome.action.onClicked.addListener(() => {
+  // Check for existing extension window
+  chrome.windows.getAll({ populate: true }, (windows) => {
+    const existingWindow = windows.find(w => 
+      w.type === 'popup' && 
+      w.tabs && 
+      w.tabs[0] && 
+      w.tabs[0].url && 
+      w.tabs[0].url.includes(chrome.runtime.getURL('popup.html'))
+    );
+
+    if (existingWindow) {
+      // Focus the existing window instead of creating a new one
+      chrome.windows.update(existingWindow.id, { focused: true });
+      return;
+    }
+
+    // Create new window if none exists
+    chrome.windows.create({
+      url: chrome.runtime.getURL('popup.html'),
+      type: 'popup',
+      width: 400,
+      height: 600,
+      focused: true
+    });
+  });
+});

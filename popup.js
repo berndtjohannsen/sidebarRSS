@@ -6,49 +6,39 @@ document.addEventListener('DOMContentLoaded', () => {
   const player = document.getElementById('player');
   const nowPlaying = document.getElementById('nowPlaying');
 
-  // Check if we're already in a popup window
+  // Check if we're in the original popup
   chrome.windows.getCurrent((currentWindow) => {
-    if (currentWindow.type !== 'popup') {
-      // Check for existing extension window
-      chrome.windows.getAll({ populate: true }, (windows) => {
-        const existingWindow = windows.find(w => 
-          w.type === 'popup' && 
-          w.tabs && 
-          w.tabs[0] && 
-          w.tabs[0].url && 
-          w.tabs[0].url.includes(chrome.runtime.getURL('popup.html'))
-        );
+    // If this is the original small popup (width < 300), don't do anything
+    if (currentWindow.width < 300) {
+      return;
+    }
 
-        if (existingWindow) {
-          // Focus the existing window instead of creating a new one
-          chrome.windows.update(existingWindow.id, { focused: true });
-        } else {
-          // Create new window if none exists
-          const width = 400;
-          const height = 600;
-          
-          chrome.windows.create({
-            url: chrome.runtime.getURL('popup.html'),
-            type: 'popup',
-            width: width,
-            height: height,
-            left: currentWindow.left,
-            top: currentWindow.top,
-            focused: true
-          });
-        }
+    // Check for existing extension window
+    chrome.windows.getAll({ populate: true }, (windows) => {
+      const existingWindow = windows.find(w => 
+        w.type === 'popup' && 
+        w.tabs && 
+        w.tabs[0] && 
+        w.tabs[0].url && 
+        w.tabs[0].url.includes(chrome.runtime.getURL('popup.html'))
+      );
 
-        // Close the original popup using Chrome API
-        if (currentWindow.id) {
-          chrome.tabs.query({ windowId: currentWindow.id, active: true }, (tabs) => {
-            if (tabs && tabs[0]) {
-              chrome.tabs.remove(tabs[0].id);
-            }
-          });
-        }
+      if (existingWindow) {
+        // Focus the existing window instead of creating a new one
+        chrome.windows.update(existingWindow.id, { focused: true });
+        return; // Stop execution in the original popup
+      }
+
+      // Create new window if none exists
+      chrome.windows.create({
+        url: chrome.runtime.getURL('popup.html'),
+        type: 'popup',
+        width: 400,
+        height: 600,
+        focused: true
       });
       return; // Stop execution in the original popup
-    }
+    });
     
     // Continue with normal initialization in the persistent window
     initializeApp();
