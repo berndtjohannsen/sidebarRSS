@@ -1,7 +1,6 @@
 - config x
-- icon does not work
+- nicer icon (can baerly see it)
 - limit to x latest
-- description for each item
 - stay across browser tabs
 - also read from web pages (login?)
 

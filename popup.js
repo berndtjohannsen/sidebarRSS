@@ -119,7 +119,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fetch and parse feeds
     function parseFeeds(feeds) {
+      console.log('Starting to parse feeds:', feeds);
       audioList.innerHTML = ''; // Clear existing audio files
+      
       feeds.forEach((feedUrl) => {
         console.log('Fetching feed:', feedUrl);
         chrome.runtime.sendMessage({ type: 'fetchFeed', url: feedUrl }, (response) => {
@@ -133,6 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           if (response.success) {
             try {
+              console.log('Received XML response:', response.xmlText.substring(0, 200) + '...');
               const xmlText = response.xmlText;
               const parser = new DOMParser();
               const xmlDoc = parser.parseFromString(xmlText, 'application/xml');
@@ -141,24 +144,29 @@ document.addEventListener('DOMContentLoaded', () => {
               console.log('Found', items.length, 'items in feed');
               items.forEach((item) => {
                 const enclosure = item.querySelector('enclosure');
-                if (enclosure && enclosure.getAttribute('type') === 'audio/mpeg') {
-                  const audioUrl = enclosure.getAttribute('url');
-                  const title = item.querySelector('title')?.textContent || 'Unknown Title';
-                  
-                  const div = document.createElement('div');
-                  div.className = 'audio-item';
-                  
-                  // Add title
-                  const titleDiv = document.createElement('div');
-                  titleDiv.className = 'audio-title';
-                  titleDiv.textContent = title;
-                  div.appendChild(titleDiv);
-                  
-                  // Add play button
-                  const playButton = createPlayButton(audioUrl, title);
-                  div.appendChild(playButton);
-                  
-                  audioList.appendChild(div);
+                if (enclosure) {
+                  console.log('Found enclosure:', enclosure.getAttribute('type'));
+                  if (enclosure.getAttribute('type') === 'audio/mpeg') {
+                    const audioUrl = enclosure.getAttribute('url');
+                    const title = item.querySelector('title')?.textContent || 'Unknown Title';
+                    
+                    console.log('Creating audio item:', { title, audioUrl });
+                    
+                    const div = document.createElement('div');
+                    div.className = 'audio-item';
+                    
+                    // Add title
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = 'audio-title';
+                    titleDiv.textContent = title;
+                    div.appendChild(titleDiv);
+                    
+                    // Add play button
+                    const playButton = createPlayButton(audioUrl, title);
+                    div.appendChild(playButton);
+                    
+                    audioList.appendChild(div);
+                  }
                 }
               });
             } catch (err) {

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Extension Icons</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .icon-preview { margin: 20px 0; }
+        canvas { border: 1px solid #ccc; }
+        .download-buttons { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h2>Extension Icon Generator</h2>
+    
+    <div class="icon-preview">
+        <h3>Preview:</h3>
+        <canvas id="preview" width="128" height="128"></canvas>
+    </div>
+
+    <div class="download-buttons">
+        <button onclick="downloadIcon(16)">Download 16x16 Icon</button>
+        <button onclick="downloadIcon(48)">Download 48x48 Icon</button>
+        <button onclick="downloadIcon(128)">Download 128x128 Icon</button>
+    </div>
+
+    <script>
+        function drawIcon(canvas, size) {
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, size, size);
+            
+            // Create gradient background
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#2E7D32');  // Darker green
+            gradient.addColorStop(1, '#388E3C');  // Slightly lighter green
+            
+            // Fill entire square with gradient
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Add subtle rounded corners
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, size * 0.2);
+            ctx.clip();
+            
+            // Draw speaker symbol - made larger and bolder
+            const speakerWidth = size * 0.6;  // Increased from 0.5
+            const speakerHeight = size * 0.8;  // Increased from 0.7
+            const x = size * 0.2;  // Moved left for better centering
+            const y = size * 0.1;  // Moved up for better centering
+            
+            // Draw main speaker body with thicker lines
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + speakerWidth * 0.35, y);
+            ctx.lineTo(x + speakerWidth * 0.6, y + speakerHeight * 0.3);
+            ctx.lineTo(x + speakerWidth * 0.6, y + speakerHeight * 0.7);
+            ctx.lineTo(x + speakerWidth * 0.35, y + speakerHeight);
+            ctx.lineTo(x, y + speakerHeight);
+            ctx.closePath();
+            ctx.fillStyle = 'white';
+            ctx.fill();
+            
+            // Draw sound waves with thicker lines and better spacing
+            ctx.beginPath();
+            ctx.moveTo(x + speakerWidth * 0.65, y + speakerHeight * 0.3);
+            ctx.quadraticCurveTo(x + speakerWidth * 0.85, size/2, x + speakerWidth * 0.65, y + speakerHeight * 0.7);
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = size * 0.1;  // Increased from 0.08
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(x + speakerWidth * 0.75, y + speakerHeight * 0.35);
+            ctx.quadraticCurveTo(x + speakerWidth * 0.95, size/2, x + speakerWidth * 0.75, y + speakerHeight * 0.65);
+            ctx.lineWidth = size * 0.08;  // Increased from 0.06
+            ctx.stroke();
+        }
+
+        function downloadIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            drawIcon(canvas, size);
+            
+            const link = document.createElement('a');
+            link.download = `icon${size}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Draw preview
+        const previewCanvas = document.getElementById('preview');
+        drawIcon(previewCanvas, 128);
+    </script>
+</body>
+</html> 
