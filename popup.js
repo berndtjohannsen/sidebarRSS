@@ -3,30 +3,51 @@ document.addEventListener('DOMContentLoaded', () => {
   const addRssButton = document.getElementById('addRss');
   const rssList = document.getElementById('rssList');
   const audioList = document.getElementById('audioList');
-  const detachButton = document.getElementById('detachButton');
 
   let playerWindowId = null;
   let playerTabId = null;
 
   // Check if we're already in a popup window
-  chrome.windows.getCurrent((window) => {
-    if (window.type !== 'popup') {
-      // If we're in the extension popup, create a persistent window
-      const width = 400;
-      const height = 600;
-      
-      chrome.windows.create({
-        url: chrome.runtime.getURL('popup.html'),
-        type: 'popup',
-        width: width,
-        height: height,
-        left: window.left,
-        top: window.top,
-        focused: true
+  chrome.windows.getCurrent((currentWindow) => {
+    if (currentWindow.type !== 'popup') {
+      // Check for existing extension window
+      chrome.windows.getAll({ populate: true }, (windows) => {
+        const existingWindow = windows.find(w => 
+          w.type === 'popup' && 
+          w.tabs && 
+          w.tabs[0] && 
+          w.tabs[0].url && 
+          w.tabs[0].url.includes(chrome.runtime.getURL('popup.html'))
+        );
+
+        if (existingWindow) {
+          // Focus the existing window instead of creating a new one
+          chrome.windows.update(existingWindow.id, { focused: true });
+        } else {
+          // Create new window if none exists
+          const width = 400;
+          const height = 600;
+          
+          chrome.windows.create({
+            url: chrome.runtime.getURL('popup.html'),
+            type: 'popup',
+            width: width,
+            height: height,
+            left: currentWindow.left,
+            top: currentWindow.top,
+            focused: true
+          });
+        }
+
+        // Close the original popup using Chrome API
+        if (currentWindow.id) {
+          chrome.tabs.query({ windowId: currentWindow.id, active: true }, (tabs) => {
+            if (tabs && tabs[0]) {
+              chrome.tabs.remove(tabs[0].id);
+            }
+          });
+        }
       });
-      
-      // Instead of closing the window, we'll just close the popup
-      window.close();
       return; // Stop execution in the original popup
     }
     
@@ -56,7 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Rest of your existing code...
     function createPlayerWindow(callback) {
       // First check if window already exists
       if (playerWindowId) {
@@ -136,12 +156,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       });
     }
-
-    // Handle detach button
-    detachButton.addEventListener('click', () => {
-      console.log('Detach button clicked');
-      createPlayerWindow();
-    });
 
     // Add new feed URL
     addRssButton.addEventListener('click', () => {
