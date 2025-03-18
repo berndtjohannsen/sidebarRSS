@@ -75,10 +75,29 @@ document.addEventListener('DOMContentLoaded', () => {
     function addFeedToUI(feedUrl) {
       const li = document.createElement('li');
       
+      const feedInfo = document.createElement('div');
+      feedInfo.className = 'feed-info';
+
+      // Initially show URL as title, will be updated when feed is loaded
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'feed-title';
+      titleDiv.textContent = new URL(feedUrl).hostname;
+      feedInfo.appendChild(titleDiv);
+
+      const detailsDiv = document.createElement('div');
+      detailsDiv.className = 'feed-details';
+      
       const urlSpan = document.createElement('span');
       urlSpan.className = 'feed-url';
       urlSpan.textContent = feedUrl;
-      li.appendChild(urlSpan);
+      
+      const episodesSpan = document.createElement('span');
+      episodesSpan.className = 'feed-episodes';
+      detailsDiv.appendChild(urlSpan);
+      detailsDiv.appendChild(episodesSpan);
+      
+      feedInfo.appendChild(detailsDiv);
+      li.appendChild(feedInfo);
 
       const controls = document.createElement('div');
       controls.className = 'feed-controls';
@@ -90,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
       refreshBtn.addEventListener('click', () => {
         chrome.storage.local.get('feeds', (data) => {
           const feeds = data.feeds || [];
-          parseFeeds(feeds); // Refresh all feeds to maintain order
+          parseFeeds(feeds);
         });
       });
 
@@ -106,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
             feeds.splice(index, 1);
             chrome.storage.local.set({ feeds }, () => {
               li.remove();
-              parseFeeds(feeds); // Parse remaining feeds
+              parseFeeds(feeds);
             });
           }
         });
@@ -116,6 +135,31 @@ document.addEventListener('DOMContentLoaded', () => {
       controls.appendChild(removeBtn);
       li.appendChild(controls);
       rssList.appendChild(li);
+
+      // Fetch feed info immediately to update title and episode count
+      chrome.runtime.sendMessage({ type: 'fetchFeed', url: feedUrl }, (response) => {
+        if (response?.success) {
+          try {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(response.xmlText, 'application/xml');
+            
+            // Update title
+            const feedTitle = xmlDoc.querySelector('channel > title')?.textContent;
+            if (feedTitle) {
+              titleDiv.textContent = feedTitle;
+            }
+            
+            // Update episode count
+            const items = xmlDoc.querySelectorAll('item');
+            const audioItems = Array.from(items).filter(item => 
+              item.querySelector('enclosure')?.getAttribute('type') === 'audio/mpeg'
+            );
+            episodesSpan.textContent = `Episodes: ${audioItems.length}`;
+          } catch (err) {
+            console.error('Error parsing feed for UI:', err);
+          }
+        }
+      });
     }
 
     // Create play button

@@ -52,13 +52,32 @@
       padding: 5px;
       border-bottom: 1px solid #eee;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .feed-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .feed-title {
+      font-weight: bold;
+      color: #333;
+    }
+    .feed-details {
+      font-size: 0.8em;
+      color: #666;
+      display: flex;
       gap: 10px;
     }
     .feed-url {
-      flex: 1;
-      overflow: hidden;
+      color: #1976d2;
       text-overflow: ellipsis;
+      overflow: hidden;
+    }
+    .feed-episodes {
+      color: #666;
     }
     .feed-controls {
       display: flex;
@@ -76,7 +95,7 @@
       background-color: #f0f0f0;
     }
     .feed-control-btn.remove {
-      color: #d32f2f;
+      color: #827c9b;
     }
     .feed-control-btn.refresh {
       color: #1976d2;
@@ -138,7 +157,7 @@
       bottom: 0;
       left: 0;
       right: 0;
-      background: #eb8e8e;
+      background: #8e97be;
       padding: 10px;
       border-top: 1px solid #ddd;
       margin: 0;
@@ -162,12 +181,12 @@
     <button id="addRss">Add Feed</button>
   </div>
   <div class="limit-control">
-    <label for="audioLimit">Items per feed:</label>
+    <label for="audioLimit">Episodes per feed to show:</label>
     <input type="number" id="audioLimit" min="1" value="3">
   </div>
-  <h3>RSS Audio Reader</h3>
+  <h3>Feeds</h3>
   <ul id="rssList"></ul>
-  <h4>Audio Files:</h4>
+  
   <div id="audioList"></div>
   <div id="playerContainer">
     <div id="nowPlaying"></div>

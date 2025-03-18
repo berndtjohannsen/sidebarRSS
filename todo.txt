@@ -1,15 +1,12 @@
-- separate different feeds in the player. Header line followed by audio files for that feed.
-- With each feed header line, add "remove" and "refresh" button and an input telling
-how many audio files that should be listed. Default is 3.
-- in the audi lines, if present, add publish date for each audio files
-- Fix the audio icon bug
+
 - Add a button to download and upload current config
 - somehow make a feature so that the plugin can read from the current page.
 IF there are audio files there, consider it a "Web feed". IF it is an RSS page or the page 
 contains the link to an RSS, use that RSS. 
 - When loading an RSS feed, create an indicator that the RSS is loading 
 - Make it possible to manually enter a "Web feed"
-- prevent double loading of RSS feeds
+- sort the feeds
+- split CSS to a separate file
 
 works
 https://feeds.npr.org/510298/podcast.xml
