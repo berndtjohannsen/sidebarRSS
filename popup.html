@@ -22,9 +22,10 @@
     .audio-control {
       background: none;
       border: none;
-      font-size: 1.5em;
+      font-size: 1em;
       cursor: pointer;
-      padding: 5px;
+      padding: 1px;
+      line-height: 1;
     }
     .audio-control:hover {
       opacity: 0.8;
@@ -62,24 +63,34 @@
     }
     #audioList {
       border-top: 1px solid #eee;
-      padding-top: 15px;
-      margin-bottom: 15px;
+      padding-top: 1px;
+      margin-bottom: 1px;
     }
     .audio-item {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
+      gap: 1px;
+      margin-bottom: 1px;
+      padding: 0;
     }
     .audio-title {
       flex: 1;
+      font-size: 1em;
+      line-height: 1.2;
+    }
+    .audio-date {
+      font-size: 0.8em;
+      color: #666;
+      margin-top: 0;
+      margin-bottom: 3px;
+      padding-left: 24px;
     }
     #playerContainer {
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
-      background: #f8f8f8;
+      background: #eb8e8e;
       padding: 10px;
       border-top: 1px solid #ddd;
       margin: 0;

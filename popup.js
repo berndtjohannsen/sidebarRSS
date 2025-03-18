@@ -145,11 +145,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     const div = document.createElement('div');
                     div.className = 'audio-item';
                     
+                    const container = document.createElement('div');
+                    container.style.flex = '1';
+                    
                     // Add title
                     const titleDiv = document.createElement('div');
                     titleDiv.className = 'audio-title';
                     titleDiv.textContent = title;
-                    div.appendChild(titleDiv);
+                    container.appendChild(titleDiv);
+                    
+                    // Add publication date
+                    const pubDate = item.querySelector('pubDate')?.textContent;
+                    if (pubDate) {
+                      const date = new Date(pubDate);
+                      const dateDiv = document.createElement('div');
+                      dateDiv.className = 'audio-date';
+                      dateDiv.textContent = `Published ${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
+                      container.appendChild(dateDiv);
+                    }
+                    
+                    div.appendChild(container);
                     
                     // Add play button
                     const playButton = createPlayButton(audioUrl, title);
