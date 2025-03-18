@@ -6,6 +6,309 @@ document.addEventListener('DOMContentLoaded', () => {
   const player = document.getElementById('player');
   const nowPlaying = document.getElementById('nowPlaying');
   const audioLimit = document.getElementById('audioLimit');
+  let savePositionInterval;
+
+  // Save position periodically and on pause/stop
+  function savePosition() {
+    const currentUrl = player.src;
+    if (currentUrl && player.currentTime > 0) {
+      chrome.storage.local.get('playbackPositions', (data) => {
+        const positions = data.playbackPositions || {};
+        positions[currentUrl] = player.currentTime;
+        chrome.storage.local.set({ playbackPositions: positions });
+      });
+    }
+  }
+
+  // Start periodic saving when playing
+  player.addEventListener('play', () => {
+    // Save position every 5 seconds during playback
+    savePositionInterval = setInterval(savePosition, 5000);
+  });
+
+  // Save position and clear interval when paused
+  player.addEventListener('pause', () => {
+    clearInterval(savePositionInterval);
+    savePosition();
+  });
+
+  // Save position when switching audio or closing
+  window.addEventListener('beforeunload', savePosition);
+
+  // Function to create play button (simplified without resume indicator)
+  function createPlayButton(url, title) {
+    const playBtn = document.createElement('button');
+    playBtn.className = 'audio-control';
+    playBtn.textContent = '⏵';  // Unicode play triangle
+    playBtn.title = 'Play';
+
+    // Update this button's state when playback state changes
+    player.addEventListener('play', () => {
+      if (player.src === url) {
+        playBtn.textContent = '⏸';  // Unicode pause symbol
+        playBtn.title = 'Pause';
+      } else {
+        playBtn.textContent = '⏵';  // Reset other buttons
+        playBtn.title = 'Play';
+      }
+    });
+
+    player.addEventListener('pause', () => {
+      if (player.src === url) {
+        playBtn.textContent = '⏵';  // Unicode play triangle
+        playBtn.title = 'Play';
+      }
+    });
+
+    playBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+
+      if (player.src === url) {
+        if (player.paused) {
+          player.play().catch(err => {
+            console.log('Play failed:', err);
+          });
+        } else {
+          player.pause();
+        }
+      } else {
+        playAudio(url, title);
+      }
+    });
+
+    return playBtn;
+  }
+
+  // Modified playAudio function to restore position
+  function playAudio(url, title) {
+    // Stop current playback before loading new audio
+    player.pause();
+    
+    // Load and play the new audio, restoring position if available
+    chrome.storage.local.get(['playbackPositions', 'playedEpisodes'], (data) => {
+      const positions = data.playbackPositions || {};
+      const playedEpisodes = data.playedEpisodes || {};
+      const savedPosition = positions[url] || 0;
+      
+      // Don't restore position if episode is marked as played
+      const isPlayed = Object.values(playedEpisodes).some(urls => urls.includes(url));
+      
+      player.src = url;
+      if (savedPosition > 0 && !isPlayed) {
+        player.currentTime = savedPosition;
+      } else {
+        player.currentTime = 0;
+      }
+      
+      player.play().catch(err => {
+        console.log('Play failed:', err);
+        if (err.name === 'AbortError') {
+          nowPlaying.textContent = '';
+        }
+      });
+      
+      nowPlaying.textContent = title;
+    });
+  }
+
+  // Function to mark episode as played/unplayed (simplified)
+  function createMarkPlayedButton(audioUrl, title, feedUrl, isPlayed) {
+    const button = document.createElement('button');
+    button.textContent = isPlayed ? '↩️' : '✔️';
+    button.className = 'audio-control mark-played';
+    button.title = isPlayed ? 'Mark as unplayed' : 'Mark as played';
+
+    button.addEventListener('click', () => {
+      chrome.storage.local.get('playedEpisodes', (data) => {
+        const playedEpisodes = data.playedEpisodes || {};
+        
+        if (!playedEpisodes[feedUrl]) {
+          playedEpisodes[feedUrl] = [];
+        }
+
+        if (isPlayed) {
+          // Mark as unplayed
+          playedEpisodes[feedUrl] = playedEpisodes[feedUrl].filter(url => url !== audioUrl);
+        } else {
+          // Mark as played
+          playedEpisodes[feedUrl].push(audioUrl);
+          
+          // If this episode is currently playing, stop it
+          if (player.src === audioUrl) {
+            player.pause();
+            player.currentTime = 0;
+            nowPlaying.textContent = '';
+          }
+        }
+
+        // Save played episodes
+        chrome.storage.local.set({ playedEpisodes }, () => {
+          // Refresh the feed display
+          chrome.storage.local.get('feeds', (data) => {
+            const feeds = data.feeds || [];
+            parseFeeds(feeds);
+          });
+        });
+      });
+    });
+
+    return button;
+  }
+
+  // Try to parse RSS feed - moved outside initializeApp
+  async function tryParseRss(feedUrl) {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage({ type: 'fetchFeed', url: feedUrl }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error('Error fetching feed:', chrome.runtime.lastError.message);
+          resolve({ success: false, error: chrome.runtime.lastError.message });
+          return;
+        }
+        if (!response) {
+          console.error('No response from background script');
+          resolve({ success: false, error: 'No response from server' });
+          return;
+        }
+        if (response.success) {
+          try {
+            console.log('Received XML response:', response.xmlText.substring(0, 200) + '...');
+            const xmlText = response.xmlText;
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, 'application/xml');
+            
+            // Check if parsing resulted in an error
+            const parserError = xmlDoc.querySelector('parsererror');
+            if (parserError) {
+              resolve({ success: false, error: 'Invalid RSS feed format' });
+              return;
+            }
+            
+            resolve({ success: true, xmlDoc });
+          } catch (err) {
+            console.error('Error parsing feed:', err);
+            resolve({ success: false, error: err.message });
+          }
+        } else {
+          console.error('Error in feed response:', response.error);
+          resolve({ success: false, error: response.error });
+        }
+      });
+    });
+  }
+
+  // Fetch and parse feeds - moved outside initializeApp
+  async function parseFeeds(feeds) {
+    audioList.innerHTML = '';
+    
+    for (const feedUrl of feeds) {
+      const result = await tryParseRss(feedUrl);
+      if (!result.success) continue;
+
+      const xmlDoc = result.xmlDoc;
+      const items = Array.from(xmlDoc.querySelectorAll('item'));
+      const audioItems = items.filter(item => 
+        item.querySelector('enclosure')?.getAttribute('type') === 'audio/mpeg'
+      );
+
+      // Get the feed title
+      const feedTitle = xmlDoc.querySelector('channel > title')?.textContent || new URL(feedUrl).hostname;
+      
+      // Add feed title as separator
+      const separator = document.createElement('div');
+      separator.className = 'podcast-separator';
+      separator.textContent = feedTitle;
+      audioList.appendChild(separator);
+
+      // Get the number of episodes to show
+      const limit = parseInt(audioLimit.value) || 3;
+      
+      // Get played episodes for this feed
+      const playedData = await chrome.storage.local.get('playedEpisodes');
+      const playedEpisodes = playedData.playedEpisodes || {};
+      const playedForFeed = playedEpisodes[feedUrl] || [];
+
+      // First add unplayed episodes up to the limit
+      let unplayedShown = 0;
+      let itemsToShow = [];
+
+      // Add unplayed episodes first
+      for (const item of audioItems) {
+        const audioUrl = item.querySelector('enclosure')?.getAttribute('url');
+        if (!audioUrl) continue;
+
+        if (!playedForFeed.includes(audioUrl)) {
+          if (unplayedShown < limit) {
+            itemsToShow.push(item);
+            unplayedShown++;
+          }
+        }
+      }
+
+      // If we haven't hit the limit, add played episodes
+      for (const item of audioItems) {
+        const audioUrl = item.querySelector('enclosure')?.getAttribute('url');
+        if (!audioUrl) continue;
+
+        if (playedForFeed.includes(audioUrl)) {
+          itemsToShow.push(item);
+        }
+      }
+
+      // Show all items
+      for (const item of itemsToShow) {
+        const title = item.querySelector('title')?.textContent || 'Untitled';
+        const audioUrl = item.querySelector('enclosure')?.getAttribute('url');
+        const pubDate = item.querySelector('pubDate')?.textContent;
+        
+        if (!audioUrl) continue;
+
+        const div = document.createElement('div');
+        div.className = 'audio-item';
+
+        // Create container for title and date
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'audio-content';
+
+        // Add title
+        const titleSpan = document.createElement('div');
+        titleSpan.className = 'audio-title';
+        titleSpan.textContent = title;
+        contentDiv.appendChild(titleSpan);
+
+        // Add date if available
+        if (pubDate) {
+          const dateDiv = document.createElement('div');
+          dateDiv.className = 'audio-date';
+          const date = new Date(pubDate);
+          dateDiv.textContent = date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+          });
+          contentDiv.appendChild(dateDiv);
+        }
+
+        // Check if episode is marked as played
+        const isPlayed = playedForFeed.includes(audioUrl);
+        if (isPlayed) {
+          div.classList.add('played');
+        }
+
+        // Add play button (without resume indicator)
+        const playButton = createPlayButton(audioUrl, title);
+        div.appendChild(playButton);
+
+        // Add content div with title and date
+        div.appendChild(contentDiv);
+
+        // Add mark as played/unplayed button
+        const markPlayedButton = createMarkPlayedButton(audioUrl, title, feedUrl, isPlayed);
+        div.appendChild(markPlayedButton);
+
+        audioList.appendChild(div);
+      }
+    }
+  }
 
   // Check if we're in the original popup
   chrome.windows.getCurrent((currentWindow) => {
@@ -209,238 +512,6 @@ document.addEventListener('DOMContentLoaded', () => {
           errorDiv.style.display = 'block';
         }
       });
-    }
-
-    // Try to parse RSS feed
-    async function tryParseRss(feedUrl) {
-      return new Promise((resolve) => {
-        chrome.runtime.sendMessage({ type: 'fetchFeed', url: feedUrl }, (response) => {
-          if (chrome.runtime.lastError) {
-            console.error('Error fetching feed:', chrome.runtime.lastError.message);
-            resolve({ success: false, error: chrome.runtime.lastError.message });
-            return;
-          }
-          if (!response) {
-            console.error('No response from background script');
-            resolve({ success: false, error: 'No response from server' });
-            return;
-          }
-          if (response.success) {
-            try {
-              console.log('Received XML response:', response.xmlText.substring(0, 200) + '...');
-              const xmlText = response.xmlText;
-              const parser = new DOMParser();
-              const xmlDoc = parser.parseFromString(xmlText, 'application/xml');
-              
-              // Check if parsing resulted in an error
-              const parserError = xmlDoc.querySelector('parsererror');
-              if (parserError) {
-                resolve({ success: false, error: 'Invalid RSS feed format' });
-                return;
-              }
-              
-              resolve({ success: true, xmlDoc });
-            } catch (err) {
-              console.error('Error parsing feed:', err);
-              resolve({ success: false, error: err.message });
-            }
-          } else {
-            console.error('Error in feed response:', response.error);
-            resolve({ success: false, error: response.error });
-          }
-        });
-      });
-    }
-
-    // Create mark as played/unplayed button
-    function createMarkPlayedButton(audioUrl, title, feedUrl, isPlayed) {
-      const button = document.createElement('button');
-      button.textContent = isPlayed ? '↩️' : '⭕'; // Circle for unplayed, curved arrow for marking as unplayed
-      button.className = 'audio-control mark-played';
-      button.title = isPlayed ? 'Mark as unplayed' : 'Mark as played';
-
-      button.addEventListener('click', async () => {
-        // Get current played episodes
-        const result = await chrome.storage.local.get('playedEpisodes');
-        const playedEpisodes = result.playedEpisodes || {};
-        
-        if (isPlayed) {
-          // Remove this episode from played list
-          if (playedEpisodes[feedUrl]) {
-            const index = playedEpisodes[feedUrl].indexOf(audioUrl);
-            if (index > -1) {
-              playedEpisodes[feedUrl].splice(index, 1);
-            }
-            if (playedEpisodes[feedUrl].length === 0) {
-              delete playedEpisodes[feedUrl];
-            }
-          }
-        } else {
-          // Add this episode to played list
-          if (!playedEpisodes[feedUrl]) {
-            playedEpisodes[feedUrl] = [];
-          }
-          playedEpisodes[feedUrl].push(audioUrl);
-        }
-        
-        // Save updated played episodes
-        await chrome.storage.local.set({ playedEpisodes });
-        
-        // Update UI
-        const audioItem = button.closest('.audio-item');
-        if (isPlayed) {
-          audioItem.classList.remove('played');
-          button.textContent = '⭕'; // Change to unplayed icon
-          button.title = 'Mark as played';
-        } else {
-          audioItem.classList.add('played');
-          button.textContent = '↩️'; // Change to undo icon
-          button.title = 'Mark as unplayed';
-        }
-        
-        // Update button states
-        const playButton = audioItem.querySelector('.audio-control:not(.mark-played)');
-        if (playButton) {
-          playButton.disabled = !isPlayed;
-        }
-        
-        // Refresh all feeds to maintain complete list
-        chrome.storage.local.get('feeds', (data) => {
-          const feeds = data.feeds || [];
-          parseFeeds(feeds);
-        });
-      });
-
-      return button;
-    }
-
-    // Create play button
-    function createPlayButton(audioUrl, title, isPlayed) {
-      const button = document.createElement('button');
-      button.textContent = '▶️';
-      button.className = 'audio-control';
-      button.disabled = isPlayed;
-
-      if (!isPlayed) {
-        button.addEventListener('click', () => {
-          // If this is already playing, stop current playback
-          if (player.src === audioUrl && !player.paused) {
-            player.pause();
-            player.currentTime = 0;
-            nowPlaying.textContent = '';
-            return;
-          }
-          
-          // Stop any currently playing audio
-          player.pause();
-          player.currentTime = 0;
-          
-          // Play the new audio
-          player.src = audioUrl;
-          player.play();
-          nowPlaying.textContent = title;
-        });
-      }
-
-      return button;
-    }
-
-    // Check if an episode is marked as played
-    async function isEpisodePlayed(audioUrl, feedUrl) {
-      const result = await chrome.storage.local.get('playedEpisodes');
-      const playedEpisodes = result.playedEpisodes || {};
-      return playedEpisodes[feedUrl]?.includes(audioUrl) || false;
-    }
-
-    // Fetch and parse feeds
-    async function parseFeeds(feeds) {
-      console.log('Starting to parse feeds:', feeds);
-      audioList.innerHTML = ''; // Clear existing audio files only once at the start
-      
-      for (const feedUrl of feeds) {
-        console.log('Processing feed:', feedUrl);
-        
-        try {
-          const rssResult = await tryParseRss(feedUrl);
-          if (rssResult.success) {
-            const xmlDoc = rssResult.xmlDoc;
-            const items = xmlDoc.querySelectorAll('item');
-            
-            // Get podcast title
-            const podcastTitle = xmlDoc.querySelector('channel > title')?.textContent || 
-                               new URL(feedUrl).hostname;
-            
-            // Add podcast separator
-            const separator = document.createElement('div');
-            separator.className = 'podcast-separator';
-            separator.textContent = podcastTitle;
-            audioList.appendChild(separator);
-            
-            console.log('Found', items.length, 'items in feed');
-            let unplayedCount = 0;
-            const limit = parseInt(audioLimit.value) || 3;
-            
-            // First pass: count unplayed episodes and show played ones
-            for (const item of items) {
-              const enclosure = item.querySelector('enclosure');
-              if (enclosure && enclosure.getAttribute('type') === 'audio/mpeg') {
-                const audioUrl = enclosure.getAttribute('url');
-                const title = item.querySelector('title')?.textContent || 'Unknown Title';
-                
-                // Check if this episode is marked as played
-                const isPlayed = await isEpisodePlayed(audioUrl, feedUrl);
-                
-                // Create audio item
-                const div = document.createElement('div');
-                div.className = 'audio-item';
-                if (isPlayed) {
-                  div.classList.add('played');
-                } else {
-                  unplayedCount++;
-                }
-                
-                const container = document.createElement('div');
-                container.style.flex = '1';
-                
-                // Add title
-                const titleDiv = document.createElement('div');
-                titleDiv.className = 'audio-title';
-                titleDiv.textContent = title;
-                container.appendChild(titleDiv);
-                
-                // Add publication date
-                const pubDate = item.querySelector('pubDate')?.textContent;
-                if (pubDate) {
-                  const date = new Date(pubDate);
-                  const dateDiv = document.createElement('div');
-                  dateDiv.className = 'audio-date';
-                  dateDiv.textContent = `Published ${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
-                  container.appendChild(dateDiv);
-                }
-                
-                div.appendChild(container);
-                
-                // Add play button
-                const playButton = createPlayButton(audioUrl, title, isPlayed);
-                div.appendChild(playButton);
-                
-                // Add mark played/unplayed button
-                const markPlayedButton = createMarkPlayedButton(audioUrl, title, feedUrl, isPlayed);
-                div.appendChild(markPlayedButton);
-                
-                // Only show if:
-                // 1. It's played (to maintain history), or
-                // 2. It's unplayed and we haven't hit our limit of unplayed episodes
-                if (isPlayed || (!isPlayed && unplayedCount <= limit)) {
-                  audioList.appendChild(div);
-                }
-              }
-            }
-          }
-        } catch (err) {
-          console.error('Error processing feed:', err);
-        }
-      }
     }
 
     // Handle audio limit changes

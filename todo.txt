@@ -12,7 +12,7 @@ Right now, I would like to continue the RSS approach, but we may add some other 
 - store current postion in  audio file
 - access to RSS catalog
 - bug player windows does not show scroll bar although the content is bigger than the window
-
+- support for M3U links (for channels)
 
 
 
