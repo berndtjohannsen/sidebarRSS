@@ -11,6 +11,7 @@ contains the link to an RSS, use that RSS.
 Right now, I would like to continue the RSS approach, but we may add some other mechanism in the future. The next feature I would like is a way to download and upload the current config. Essentially a list of Feeds. The config format should be prepared to add more information, for example which episodes has been played.
 - store current postion in  audio file
 - access to RSS catalog
+- bug player windows does not show scroll bar although the content is bigger than the window
 
 
 

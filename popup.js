@@ -252,15 +252,72 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    // Create mark as played/unplayed button
+    function createMarkPlayedButton(audioUrl, title, feedUrl, isPlayed) {
+      const button = document.createElement('button');
+      button.textContent = isPlayed ? '↩️' : '✓'; // Curved arrow for unmark, checkmark for mark as played
+      button.className = 'audio-control mark-played';
+      button.title = isPlayed ? 'Mark as unplayed' : 'Mark as played';
+
+      button.addEventListener('click', async () => {
+        // Get current played episodes
+        const result = await chrome.storage.local.get('playedEpisodes');
+        const playedEpisodes = result.playedEpisodes || {};
+        
+        if (isPlayed) {
+          // Remove this episode from played list
+          if (playedEpisodes[feedUrl]) {
+            const index = playedEpisodes[feedUrl].indexOf(audioUrl);
+            if (index > -1) {
+              playedEpisodes[feedUrl].splice(index, 1);
+            }
+            if (playedEpisodes[feedUrl].length === 0) {
+              delete playedEpisodes[feedUrl];
+            }
+          }
+        } else {
+          // Add this episode to played list
+          if (!playedEpisodes[feedUrl]) {
+            playedEpisodes[feedUrl] = [];
+          }
+          playedEpisodes[feedUrl].push(audioUrl);
+        }
+        
+        // Save updated played episodes
+        await chrome.storage.local.set({ playedEpisodes });
+        
+        // Update UI
+        const audioItem = button.closest('.audio-item');
+        if (isPlayed) {
+          audioItem.classList.remove('played');
+        } else {
+          audioItem.classList.add('played');
+        }
+        
+        // Update button states
+        const playButton = audioItem.querySelector('.audio-control:not(.mark-played)');
+        if (playButton) {
+          playButton.disabled = !isPlayed; // Enable if marking as unplayed, disable if marking as played
+        }
+        
+        // Refresh all feeds to maintain complete list
+        chrome.storage.local.get('feeds', (data) => {
+          const feeds = data.feeds || [];
+          parseFeeds(feeds);
+        });
+      });
+
+      return button;
+    }
+
     // Create play button
     function createPlayButton(audioUrl, title, isPlayed) {
       const button = document.createElement('button');
       button.textContent = '▶️';
       button.className = 'audio-control';
-      
-      if (isPlayed) {
-        button.disabled = true;
-      } else {
+      button.disabled = isPlayed;
+
+      if (!isPlayed) {
         button.addEventListener('click', () => {
           // If this is already playing, stop current playback
           if (player.src === audioUrl && !player.paused) {
@@ -280,48 +337,6 @@ document.addEventListener('DOMContentLoaded', () => {
           nowPlaying.textContent = title;
         });
       }
-
-      return button;
-    }
-
-    // Create mark as played button
-    function createMarkPlayedButton(audioUrl, title, feedUrl) {
-      const button = document.createElement('button');
-      button.textContent = '✓';
-      button.className = 'audio-control mark-played';
-      button.title = 'Mark as played';
-
-      button.addEventListener('click', async () => {
-        // Get current played episodes
-        const result = await chrome.storage.local.get('playedEpisodes');
-        const playedEpisodes = result.playedEpisodes || {};
-        
-        // Add this episode to played list
-        if (!playedEpisodes[feedUrl]) {
-          playedEpisodes[feedUrl] = [];
-        }
-        playedEpisodes[feedUrl].push(audioUrl);
-        
-        // Save updated played episodes
-        await chrome.storage.local.set({ playedEpisodes });
-        
-        // Update UI
-        const audioItem = button.closest('.audio-item');
-        audioItem.classList.add('played');
-        
-        // Disable both play and mark as played buttons
-        const playButton = audioItem.querySelector('.audio-control:not(.mark-played)');
-        if (playButton) {
-          playButton.disabled = true;
-        }
-        button.disabled = true;
-        
-        // Refresh all feeds to maintain complete list
-        chrome.storage.local.get('feeds', (data) => {
-          const feeds = data.feeds || [];
-          parseFeeds(feeds);
-        });
-      });
 
       return button;
     }
@@ -405,11 +420,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const playButton = createPlayButton(audioUrl, title, isPlayed);
                 div.appendChild(playButton);
                 
-                // Add mark as played button
-                const markPlayedButton = createMarkPlayedButton(audioUrl, title, feedUrl);
-                if (isPlayed) {
-                  markPlayedButton.disabled = true;
-                }
+                // Add mark played/unplayed button
+                const markPlayedButton = createMarkPlayedButton(audioUrl, title, feedUrl, isPlayed);
                 div.appendChild(markPlayedButton);
                 
                 // Only show if:
