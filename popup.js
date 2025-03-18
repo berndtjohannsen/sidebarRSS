@@ -227,32 +227,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const playedEpisodes = playedData.playedEpisodes || {};
       const playedForFeed = playedEpisodes[feedUrl] || [];
 
-      // First add unplayed episodes up to the limit
-      let unplayedShown = 0;
-      let itemsToShow = [];
-
-      // Add unplayed episodes first
-      for (const item of audioItems) {
+      // Count how many of the first 'limit' items are played
+      const playedInLimit = audioItems.slice(0, limit).filter(item => {
         const audioUrl = item.querySelector('enclosure')?.getAttribute('url');
-        if (!audioUrl) continue;
+        return audioUrl && playedForFeed.includes(audioUrl);
+      }).length;
 
-        if (!playedForFeed.includes(audioUrl)) {
-          if (unplayedShown < limit) {
-            itemsToShow.push(item);
-            unplayedShown++;
-          }
-        }
-      }
-
-      // If we haven't hit the limit, add played episodes
-      for (const item of audioItems) {
-        const audioUrl = item.querySelector('enclosure')?.getAttribute('url');
-        if (!audioUrl) continue;
-
-        if (playedForFeed.includes(audioUrl)) {
-          itemsToShow.push(item);
-        }
-      }
+      // Show additional items equal to the number of played items
+      const itemsToShow = audioItems.slice(0, limit + playedInLimit);
 
       // Show all items
       for (const item of itemsToShow) {
