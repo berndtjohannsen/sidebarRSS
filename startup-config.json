@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "timestamp": "2025-03-18T22:08:13.469Z",
+  "feeds": [
+    {
+      "type": "rss",
+      "url": "http://juridikpodden.libsyn.com/rss",
+      "maxEpisodes": 3
+    },
+    {
+      "type": "rss",
+      "url": "https://www.patreon.com/rss/kungarochkrig?auth=xwWZm_wjlaOXcfWz2Ew5suk3gBs-TNAy&show=874057",
+      "maxEpisodes": 3
+    }
+  ],
+  "playedEpisodes": {},
+  "playbackPositions": {}
+}

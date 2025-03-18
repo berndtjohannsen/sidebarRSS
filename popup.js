@@ -358,11 +358,37 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function initializeApp() {
-    // Load saved feeds
+    // Load saved feeds or startup configuration
     chrome.storage.local.get(['feeds'], (data) => {
       const feeds = data.feeds || [];
-      feeds.forEach(addFeedToUI);
-      if (feeds.length > 0) parseFeeds(feeds);
+      if (feeds.length === 0) {
+        // Try to load startup configuration
+        fetch(chrome.runtime.getURL('startup-config.json'))
+          .then(response => response.json())
+          .then(config => {
+            if (config.feeds && config.feeds.length > 0) {
+              const validFeeds = config.feeds.filter(feed => feed.url.trim() !== '');
+              if (validFeeds.length > 0) {
+                const feedUrls = validFeeds.map(feed => feed.url);
+                chrome.storage.local.set({
+                  feeds: feedUrls,
+                  playedEpisodes: config.playedEpisodes || {},
+                  playbackPositions: config.playbackPositions || {}
+                }, () => {
+                  if (validFeeds[0]?.maxEpisodes) {
+                    audioLimit.value = validFeeds[0].maxEpisodes;
+                  }
+                  feedUrls.forEach(addFeedToUI);
+                  parseFeeds(feedUrls);
+                });
+              }
+            }
+          })
+          .catch(err => console.warn('Failed to load startup configuration:', err));
+      } else {
+        feeds.forEach(addFeedToUI);
+        if (feeds.length > 0) parseFeeds(feeds);
+      }
     });
 
     // Handle configuration export
