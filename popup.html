@@ -51,6 +51,47 @@
       margin: 10px 0;
       padding: 5px;
       border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .feed-url {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .feed-controls {
+      display: flex;
+      gap: 5px;
+    }
+    .feed-control-btn {
+      background: none;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      padding: 2px 8px;
+      cursor: pointer;
+      font-size: 0.9em;
+    }
+    .feed-control-btn:hover {
+      background-color: #f0f0f0;
+    }
+    .feed-control-btn.remove {
+      color: #d32f2f;
+    }
+    .feed-control-btn.refresh {
+      color: #1976d2;
+    }
+    .limit-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0;
+      padding: 5px;
+      border-bottom: 1px solid #eee;
+    }
+    #audioLimit {
+      width: 60px;
+      padding: 3px;
     }
     .input-group {
       display: flex;
@@ -85,6 +126,13 @@
       margin-bottom: 3px;
       padding-left: 24px;
     }
+    .podcast-separator {
+      margin: 15px 0 8px 0;
+      padding: 5px 0;
+      border-bottom: 1px solid #ddd;
+      font-weight: bold;
+      color: #333;
+    }
     #playerContainer {
       position: fixed;
       bottom: 0;
@@ -112,6 +160,10 @@
   <div class="input-group">
     <input type="text" id="rssInput" placeholder="Enter RSS feed URL">
     <button id="addRss">Add Feed</button>
+  </div>
+  <div class="limit-control">
+    <label for="audioLimit">Items per feed:</label>
+    <input type="number" id="audioLimit" min="1" value="3">
   </div>
   <h3>RSS Audio Reader</h3>
   <ul id="rssList"></ul>

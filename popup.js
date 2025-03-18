@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const audioList = document.getElementById('audioList');
   const player = document.getElementById('player');
   const nowPlaying = document.getElementById('nowPlaying');
+  const audioLimit = document.getElementById('audioLimit');
 
   // Check if we're in the original popup
   chrome.windows.getCurrent((currentWindow) => {
@@ -73,7 +74,44 @@ document.addEventListener('DOMContentLoaded', () => {
     // Display the RSS feed in the UI
     function addFeedToUI(feedUrl) {
       const li = document.createElement('li');
-      li.textContent = feedUrl;
+      
+      const urlSpan = document.createElement('span');
+      urlSpan.className = 'feed-url';
+      urlSpan.textContent = feedUrl;
+      li.appendChild(urlSpan);
+
+      const controls = document.createElement('div');
+      controls.className = 'feed-controls';
+
+      const refreshBtn = document.createElement('button');
+      refreshBtn.className = 'feed-control-btn refresh';
+      refreshBtn.textContent = '↻';
+      refreshBtn.title = 'Refresh feed';
+      refreshBtn.addEventListener('click', () => {
+        parseFeeds([feedUrl]);
+      });
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'feed-control-btn remove';
+      removeBtn.textContent = '×';
+      removeBtn.title = 'Remove feed';
+      removeBtn.addEventListener('click', () => {
+        chrome.storage.local.get('feeds', (data) => {
+          const feeds = data.feeds || [];
+          const index = feeds.indexOf(feedUrl);
+          if (index > -1) {
+            feeds.splice(index, 1);
+            chrome.storage.local.set({ feeds }, () => {
+              li.remove();
+              parseFeeds(feeds); // Refresh audio list
+            });
+          }
+        });
+      });
+
+      controls.appendChild(refreshBtn);
+      controls.appendChild(removeBtn);
+      li.appendChild(controls);
       rssList.appendChild(li);
     }
 
@@ -110,17 +148,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fetch and parse feeds
     function parseFeeds(feeds) {
       console.log('Starting to parse feeds:', feeds);
-      audioList.innerHTML = ''; // Clear existing audio files
+      audioList.innerHTML = ''; // Clear existing audio files only once at the start
+      
+      // Keep track of processed feeds to handle errors
+      let processedFeeds = 0;
       
       feeds.forEach((feedUrl) => {
         console.log('Fetching feed:', feedUrl);
         chrome.runtime.sendMessage({ type: 'fetchFeed', url: feedUrl }, (response) => {
           if (chrome.runtime.lastError) {
             console.error('Error fetching feed:', chrome.runtime.lastError.message);
+            processedFeeds++;
             return;
           }
           if (!response) {
             console.error('No response from background script');
+            processedFeeds++;
             return;
           }
           if (response.success) {
@@ -131,12 +174,28 @@ document.addEventListener('DOMContentLoaded', () => {
               const xmlDoc = parser.parseFromString(xmlText, 'application/xml');
               const items = xmlDoc.querySelectorAll('item');
               
+              // Get podcast title
+              const podcastTitle = xmlDoc.querySelector('channel > title')?.textContent || 
+                                 new URL(feedUrl).hostname;
+              
+              // Add podcast separator
+              const separator = document.createElement('div');
+              separator.className = 'podcast-separator';
+              separator.textContent = podcastTitle;
+              audioList.appendChild(separator);
+              
               console.log('Found', items.length, 'items in feed');
+              let itemCount = 0;
+              const limit = parseInt(audioLimit.value) || 3;
+              
               items.forEach((item) => {
+                if (itemCount >= limit) return;
+                
                 const enclosure = item.querySelector('enclosure');
                 if (enclosure) {
                   console.log('Found enclosure:', enclosure.getAttribute('type'));
                   if (enclosure.getAttribute('type') === 'audio/mpeg') {
+                    itemCount++;
                     const audioUrl = enclosure.getAttribute('url');
                     const title = item.querySelector('title')?.textContent || 'Unknown Title';
                     
@@ -180,8 +239,19 @@ document.addEventListener('DOMContentLoaded', () => {
           } else {
             console.error('Error in feed response:', response.error);
           }
+          processedFeeds++;
         });
       });
     }
+
+    // Handle audio limit changes
+    audioLimit.addEventListener('change', () => {
+      chrome.storage.local.get('feeds', (data) => {
+        const feeds = data.feeds || [];
+        if (feeds.length > 0) {
+          parseFeeds(feeds);
+        }
+      });
+    });
   }
 });
