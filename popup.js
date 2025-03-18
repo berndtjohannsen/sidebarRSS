@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Create mark as played/unplayed button
     function createMarkPlayedButton(audioUrl, title, feedUrl, isPlayed) {
       const button = document.createElement('button');
-      button.textContent = isPlayed ? '↩️' : '✓'; // Curved arrow for unmark, checkmark for mark as played
+      button.textContent = isPlayed ? '↩️' : '⭕'; // Circle for unplayed, curved arrow for marking as unplayed
       button.className = 'audio-control mark-played';
       button.title = isPlayed ? 'Mark as unplayed' : 'Mark as played';
 
@@ -290,14 +290,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const audioItem = button.closest('.audio-item');
         if (isPlayed) {
           audioItem.classList.remove('played');
+          button.textContent = '⭕'; // Change to unplayed icon
+          button.title = 'Mark as played';
         } else {
           audioItem.classList.add('played');
+          button.textContent = '↩️'; // Change to undo icon
+          button.title = 'Mark as unplayed';
         }
         
         // Update button states
         const playButton = audioItem.querySelector('.audio-control:not(.mark-played)');
         if (playButton) {
-          playButton.disabled = !isPlayed; // Enable if marking as unplayed, disable if marking as played
+          playButton.disabled = !isPlayed;
         }
         
         // Refresh all feeds to maintain complete list
