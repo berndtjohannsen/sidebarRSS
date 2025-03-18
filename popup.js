@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (err) {
         const errorDiv = document.createElement('div');
         errorDiv.className = 'feed-error';
-        errorDiv.textContent = 'Invalid URL.';
+        errorDiv.textContent = 'Invalid URL format. Please enter a valid URL starting with http:// or https://';
         errorDiv.style.display = 'block';
         
         // Insert error message after input
@@ -218,15 +218,15 @@ document.addEventListener('DOMContentLoaded', () => {
       button.className = 'audio-control';
 
       button.addEventListener('click', () => {
-        // Update all buttons
+        // Update all buttons to show play icon
         document.querySelectorAll('.audio-control').forEach(btn => {
           btn.textContent = '▶️';
         });
         
-        // If this button is already playing, pause
-        if (button.textContent === '⏸️') {
+        // If this is already playing, stop current playback
+        if (player.src === audioUrl && !player.paused) {
           player.pause();
-          button.textContent = '▶️';
+          player.currentTime = 0;
           nowPlaying.textContent = '';
           return;
         }
@@ -234,7 +234,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Play the new audio
         player.src = audioUrl;
         player.play();
-        button.textContent = '⏸️';
         nowPlaying.textContent = title;
       });
 
