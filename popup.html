@@ -137,10 +137,27 @@
     }
     .audio-item {
       display: flex;
-      align-items: center;
-      gap: 1px;
-      margin-bottom: 1px;
-      padding: 0;
+      align-items: flex-start;
+      padding: 1px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .audio-item.played {
+      opacity: 0.6;
+    }
+    .audio-item.played .audio-title {
+      text-decoration: line-through;
+    }
+    .audio-item.played .audio-control {
+      pointer-events: none;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .audio-control {
+      margin-left: 5px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      padding: 2px 5px;
     }
     .audio-title {
       flex: 1;

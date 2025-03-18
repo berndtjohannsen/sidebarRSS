@@ -7,8 +7,13 @@ contains the link to an RSS, use that RSS.
 - Make it possible to manually enter a "Web feed"
 - sort the feeds
 - split CSS to a separate file
-- MAybe a better indication what urrent file is played
-- RSS with autehntication
+- makr played, then the episode turns gray and the next in time is listed, yes, this can then exceed the max number per pod.
+Right now, I would like to continue the RSS approach, but we may add some other mechanism in the future. The next feature I would like is a way to download and upload the current config. Essentially a list of Feeds. The config format should be prepared to add more information, for example which episodes has been played.
+- store current postion in  audio file
+- access to RSS catalog
+
+
+
 
 works
 https://feeds.npr.org/510298/podcast.xml
