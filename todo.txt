@@ -12,7 +12,7 @@ Right now, I would like to continue the RSS approach, but we may add some other 
 - support for M3U links (for channels)
 - See this: https://feedsearch.dev/api/v1/search?result=true&url=sverigesradio.se
 - or this: https://gpodder.net/directory/
--image icon per feed
+- image icon per feed?
 - maybe just tell the user where to go to find RSS:es?
 
 
