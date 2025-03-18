@@ -365,6 +365,85 @@ document.addEventListener('DOMContentLoaded', () => {
       if (feeds.length > 0) parseFeeds(feeds);
     });
 
+    // Handle configuration export
+    document.getElementById('exportConfig').addEventListener('click', async () => {
+      try {
+        const data = await chrome.storage.local.get(['feeds', 'playbackPositions', 'playedEpisodes', 'audioLimit']);
+        
+        const config = {
+          version: '1.0',
+          timestamp: new Date().toISOString(),
+          feeds: data.feeds?.map(url => ({
+            type: 'rss',  // For future extensibility
+            url: url,
+            maxEpisodes: parseInt(audioLimit.value) || 3
+          })) || [],
+          playedEpisodes: data.playedEpisodes || {},
+          playbackPositions: data.playbackPositions || {}
+        };
+
+        // Create and trigger download
+        const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `rss-reader-config-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error('Error exporting configuration:', err);
+        alert('Failed to export configuration. Please try again.');
+      }
+    });
+
+    // Handle configuration import
+    document.getElementById('importConfig').addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json';
+      
+      input.onchange = async (e) => {
+        try {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const text = await file.text();
+          const config = JSON.parse(text);
+
+          // Validate config version and structure
+          if (!config.version || !config.feeds) {
+            throw new Error('Invalid configuration file format');
+          }
+
+          // Extract and save feeds
+          const feeds = config.feeds.map(feed => feed.url);
+          await chrome.storage.local.set({
+            feeds,
+            playedEpisodes: config.playedEpisodes || {},
+            playbackPositions: config.playbackPositions || {}
+          });
+
+          // Update UI
+          rssList.innerHTML = '';
+          audioList.innerHTML = '';
+          feeds.forEach(addFeedToUI);
+          if (feeds.length > 0) parseFeeds(feeds);
+
+          // Set episode limit if provided
+          if (config.feeds[0]?.maxEpisodes) {
+            audioLimit.value = config.feeds[0].maxEpisodes;
+          }
+        } catch (err) {
+          console.error('Error importing configuration:', err);
+          alert('Failed to import configuration. Please ensure the file is valid.');
+        }
+      };
+
+      input.click();
+    });
+
     // Add new feed URL
     addRssButton.addEventListener('click', () => {
       const feedUrl = rssInput.value.trim();
