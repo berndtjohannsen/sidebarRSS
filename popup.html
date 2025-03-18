@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RSS Audio Reader</title>
   <style>
+    /* Basic page layout and scrolling */
     body { 
       font-family: Arial, sans-serif; 
       margin: 10px;
@@ -12,8 +13,10 @@
       min-height: 400px;
       height: auto;
       overflow-y: auto;
-      padding-bottom: 120px;
+      padding-bottom: 120px;  /* Space for audio player at bottom */
     }
+
+    /* Error message styling for feed errors */
     .feed-error {
       color: #d32f2f;
       font-size: 0.85em;
@@ -23,6 +26,8 @@
       border-radius: 3px;
       display: none;
     }
+
+    /* Basic form element spacing */
     input, button { 
       margin: 5px 0; 
     }
@@ -30,6 +35,8 @@
       list-style: none; 
       padding: 0; 
     }
+
+    /* Audio control buttons (play, pause, mark played) */
     .audio-control {
       margin: 0 2px;
       cursor: pointer;
@@ -43,12 +50,14 @@
       justify-content: center;
       min-width: 24px;
       min-height: 24px;
-      color: #1976d2;
+      color: #1976d2;  /* Material UI blue */
       transition: color 0.2s;
     }
     .audio-control:hover {
-      color: #1565c0;
+      color: #1565c0;  /* Darker blue on hover */
     }
+
+    /* Green dot indicator for episodes with saved position */
     .audio-control.has-resume {
       position: relative;
     }
@@ -59,9 +68,11 @@
       right: 0;
       width: 6px;
       height: 6px;
-      background-color: #4CAF50;
+      background-color: #4CAF50;  /* Material UI green */
       border-radius: 50%;
     }
+
+    /* Restart and mark-played button specific styles */
     .audio-control.restart {
       font-size: 14px;
       color: #666;
@@ -70,12 +81,19 @@
       color: #333;
     }
     .audio-control.mark-played {
-      font-size: 14px;
-      color: #666;
+      font-size: 18px;  /* Slightly larger for better checkbox visibility */
+      color: #1976d2;  /* Use the same blue as play buttons */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
     }
     .audio-control.mark-played:hover {
-      color: #333;
+      color: #1565c0;  /* Same hover color as play buttons */
     }
+
+    /* RSS feed input and add button */
     #rssInput {
       width: 100%;
       padding: 5px;
@@ -84,15 +102,17 @@
     #addRss {
       width: 100%;
       padding: 5px;
-      background-color: #4CAF50;
+      background-color: #4CAF50;  /* Material UI green */
       color: white;
       border: none;
       border-radius: 3px;
       cursor: pointer;
     }
     #addRss:hover {
-      background-color: #45a049;
+      background-color: #45a049;  /* Darker green on hover */
     }
+
+    /* Feed list item layout */
     li {
       margin: 10px 0;
       padding: 5px;
@@ -101,6 +121,8 @@
       align-items: flex-start;
       gap: 10px;
     }
+
+    /* Feed information container */
     .feed-info {
       flex: 1;
       display: flex;
@@ -118,13 +140,15 @@
       gap: 10px;
     }
     .feed-url {
-      color: #1976d2;
+      color: #1976d2;  /* Material UI blue */
       text-overflow: ellipsis;
       overflow: hidden;
     }
     .feed-episodes {
       color: #666;
     }
+
+    /* Feed control buttons (refresh, remove) */
     .feed-controls {
       display: flex;
       gap: 5px;
@@ -141,11 +165,13 @@
       background-color: #f0f0f0;
     }
     .feed-control-btn.remove {
-      color: #827c9b;
+      color: #827c9b;  /* Muted purple for remove */
     }
     .feed-control-btn.refresh {
-      color: #1976d2;
+      color: #1976d2;  /* Material UI blue */
     }
+
+    /* Episode limit control and config buttons */
     .limit-control {
       display: flex;
       align-items: center;
@@ -166,15 +192,17 @@
     .config-btn {
       padding: 3px 8px;
       font-size: 12px;
-      background-color: #1976d2;
+      background-color: #1976d2;  /* Material UI blue */
       color: white;
       border: none;
       border-radius: 3px;
       cursor: pointer;
     }
     .config-btn:hover {
-      background-color: #1565c0;
+      background-color: #1565c0;  /* Darker blue on hover */
     }
+
+    /* Main content layout sections */
     .input-group {
       display: flex;
       gap: 10px;
@@ -189,6 +217,8 @@
       padding-top: 1px;
       margin-bottom: 1px;
     }
+
+    /* Individual audio item styling */
     .audio-item {
       display: flex;
       align-items: flex-start;
@@ -212,8 +242,10 @@
       color: #666;
       margin-top: 2px;
     }
+
+    /* Played episode styling */
     .audio-item.played {
-      opacity: 0.6;
+      opacity: 0.6;  /* Fade out played items */
     }
     .audio-item.played .audio-title {
       text-decoration: line-through;
@@ -223,6 +255,8 @@
       opacity: 0.5;
       cursor: not-allowed;
     }
+
+    /* Podcast feed separator with expand/collapse */
     .podcast-separator {
       margin: 15px 0 8px 0;
       padding: 5px 0;
@@ -239,15 +273,18 @@
       transition: transform 0.2s;
     }
     .podcast-separator.collapsed .toggle-icon {
-      transform: rotate(-90deg);
+      transform: rotate(-90deg);  /* Rotate arrow when collapsed */
     }
+
+    /* Expandable feed episodes container */
     .feed-episodes {
       transition: max-height 0.3s ease-out;
       overflow: hidden;
     }
     .feed-episodes.collapsed {
-      max-height: 0;
+      max-height: 0;  /* Hide episodes when collapsed */
     }
+
     #playerContainer {
       position: fixed;
       bottom: 0;

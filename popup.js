@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Function to mark episode as played/unplayed (simplified)
   function createMarkPlayedButton(audioUrl, title, feedUrl, isPlayed) {
     const button = document.createElement('button');
-    button.textContent = isPlayed ? '↩️' : '✔️';
+    button.textContent = isPlayed ? '☑' : '☐';  // Use checkbox icons
     button.className = 'audio-control mark-played';
     button.title = isPlayed ? 'Mark as unplayed' : 'Mark as played';
 
