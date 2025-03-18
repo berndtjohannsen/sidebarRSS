@@ -213,11 +213,38 @@ document.addEventListener('DOMContentLoaded', () => {
       // Get the feed title
       const feedTitle = xmlDoc.querySelector('channel > title')?.textContent || new URL(feedUrl).hostname;
       
-      // Add feed title as separator
+      // Create feed container
+      const feedContainer = document.createElement('div');
+      feedContainer.className = 'feed-container';
+      
+      // Add feed title as separator with toggle
       const separator = document.createElement('div');
       separator.className = 'podcast-separator';
-      separator.textContent = feedTitle;
-      audioList.appendChild(separator);
+      
+      const toggleIcon = document.createElement('span');
+      toggleIcon.className = 'toggle-icon';
+      toggleIcon.textContent = '▼';
+      
+      const titleText = document.createElement('span');
+      titleText.textContent = feedTitle;
+      
+      separator.appendChild(toggleIcon);
+      separator.appendChild(titleText);
+      feedContainer.appendChild(separator);
+
+      // Create episodes container
+      const episodesContainer = document.createElement('div');
+      episodesContainer.className = 'feed-episodes';
+      feedContainer.appendChild(episodesContainer);
+
+      // Add click handler for expand/collapse
+      separator.addEventListener('click', () => {
+        separator.classList.toggle('collapsed');
+        episodesContainer.classList.toggle('collapsed');
+        toggleIcon.textContent = separator.classList.contains('collapsed') ? '▶' : '▼';
+      });
+
+      audioList.appendChild(feedContainer);
 
       // Get the number of episodes to show
       const limit = parseInt(audioLimit.value) || 3;
@@ -287,7 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const markPlayedButton = createMarkPlayedButton(audioUrl, title, feedUrl, isPlayed);
         div.appendChild(markPlayedButton);
 
-        audioList.appendChild(div);
+        episodesContainer.appendChild(div);
       }
     }
   }

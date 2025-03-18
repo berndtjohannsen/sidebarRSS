@@ -212,6 +212,24 @@
       border-bottom: 1px solid #ddd;
       font-weight: bold;
       color: #333;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    .podcast-separator .toggle-icon {
+      margin-right: 8px;
+      font-size: 12px;
+      transition: transform 0.2s;
+    }
+    .podcast-separator.collapsed .toggle-icon {
+      transform: rotate(-90deg);
+    }
+    .feed-episodes {
+      transition: max-height 0.3s ease-out;
+      overflow: hidden;
+    }
+    .feed-episodes.collapsed {
+      max-height: 0;
     }
     #playerContainer {
       position: fixed;
