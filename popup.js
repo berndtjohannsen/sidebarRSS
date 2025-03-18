@@ -280,10 +280,10 @@ document.addEventListener('DOMContentLoaded', () => {
           const dateDiv = document.createElement('div');
           dateDiv.className = 'audio-date';
           const date = new Date(pubDate);
-          dateDiv.textContent = date.toLocaleDateString('en-US', {
+          dateDiv.textContent = 'Publication date: ' + date.toLocaleDateString('en-US', {
             year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
+            month: 'long',
+            day: 'numeric'
           });
           contentDiv.appendChild(dateDiv);
         }
