@@ -58,6 +58,24 @@ document.addEventListener('DOMContentLoaded', () => {
       const feedUrl = rssInput.value.trim();
       if (!feedUrl) return;
 
+      // Validate URL format
+      try {
+        new URL(feedUrl);
+      } catch (err) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'feed-error';
+        errorDiv.textContent = 'Invalid URL.';
+        errorDiv.style.display = 'block';
+        
+        // Insert error message after input
+        const inputGroup = rssInput.parentElement;
+        if (inputGroup.querySelector('.feed-error')) {
+          inputGroup.querySelector('.feed-error').remove();
+        }
+        inputGroup.appendChild(errorDiv);
+        return;
+      }
+
       chrome.storage.local.get('feeds', (data) => {
         const feeds = data.feeds || [];
         if (!feeds.includes(feedUrl)) {
@@ -69,6 +87,12 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       rssInput.value = '';
+      // Clear any previous input error messages
+      const inputGroup = rssInput.parentElement;
+      const previousError = inputGroup.querySelector('.feed-error');
+      if (previousError) {
+        previousError.remove();
+      }
     });
 
     // Display the RSS feed in the UI
@@ -81,8 +105,17 @@ document.addEventListener('DOMContentLoaded', () => {
       // Initially show URL as title, will be updated when feed is loaded
       const titleDiv = document.createElement('div');
       titleDiv.className = 'feed-title';
-      titleDiv.textContent = new URL(feedUrl).hostname;
+      try {
+        titleDiv.textContent = new URL(feedUrl).hostname;
+      } catch (err) {
+        titleDiv.textContent = feedUrl;
+      }
       feedInfo.appendChild(titleDiv);
+
+      // Add error message container
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'feed-error';
+      feedInfo.appendChild(errorDiv);
 
       const detailsDiv = document.createElement('div');
       detailsDiv.className = 'feed-details';
@@ -143,6 +176,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(response.xmlText, 'application/xml');
             
+            // Check if parsing resulted in an error
+            const parserError = xmlDoc.querySelector('parsererror');
+            if (parserError) {
+              errorDiv.textContent = 'Invalid RSS feed format';
+              errorDiv.style.display = 'block';
+              return;
+            }
+            
             // Update title
             const feedTitle = xmlDoc.querySelector('channel > title')?.textContent;
             if (feedTitle) {
@@ -155,9 +196,17 @@ document.addEventListener('DOMContentLoaded', () => {
               item.querySelector('enclosure')?.getAttribute('type') === 'audio/mpeg'
             );
             episodesSpan.textContent = `Episodes: ${audioItems.length}`;
+            
+            // Clear any previous errors
+            errorDiv.style.display = 'none';
           } catch (err) {
             console.error('Error parsing feed for UI:', err);
+            errorDiv.textContent = 'Error parsing feed';
+            errorDiv.style.display = 'block';
           }
+        } else {
+          errorDiv.textContent = response?.error || 'Failed to fetch feed';
+          errorDiv.style.display = 'block';
         }
       });
     }
