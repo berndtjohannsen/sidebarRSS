@@ -81,12 +81,12 @@
       color: #333;
     }
     .audio-control.mark-played {
-      font-size: 18px;  /* Slightly larger for better checkbox visibility */
-      color: #1976d2;  /* Use the same blue as play buttons */
+      font-size: 18px;
+      color: #1976d2;
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 24px;
+      width: 60px;  /* Match header width */
       height: 24px;
     }
     .audio-control.mark-played:hover {
@@ -274,6 +274,29 @@
     }
     .podcast-separator.collapsed .toggle-icon {
       transform: rotate(-90deg);  /* Rotate arrow when collapsed */
+    }
+
+    /* Header row for episode list */
+    .episode-header {
+      display: flex;
+      align-items: center;
+      padding: 4px 0;
+      color: #666;
+      font-size: 0.85em;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 4px;
+    }
+    .episode-header .header-play {
+      width: 24px;  /* Same as play button */
+    }
+    .episode-header .header-title {
+      flex: 1;
+      padding-left: 5px;
+    }
+    .episode-header .header-complete {
+      width: 60px;  /* Increased width to fit "Complete" text */
+      text-align: center;
+      padding-right: 5px;  /* Add some padding on the right */
     }
 
     /* Expandable feed episodes container */
