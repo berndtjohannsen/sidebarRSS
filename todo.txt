@@ -12,8 +12,11 @@ Right now, I would like to continue the RSS approach, but we may add some other 
 - access to RSS catalog
 - bug player windows does not show scroll bar although the content is bigger than the window
 - support for M3U links (for channels)
-
+- See this: https://feedsearch.dev/api/v1/search?result=true&url=sverigesradio.se
+- or this: https://gpodder.net/directory/
+- in the episode listing make the ui so that you can expand each pod
 
 
 works
 https://feeds.npr.org/510298/podcast.xml
+https://juridikpodden.libsyn.com/rss
