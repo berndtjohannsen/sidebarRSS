@@ -235,6 +235,27 @@ document.addEventListener('DOMContentLoaded', () => {
       // Create episodes container
       const episodesContainer = document.createElement('div');
       episodesContainer.className = 'feed-episodes';
+
+      // Add header row
+      const header = document.createElement('div');
+      header.className = 'episode-header';
+      
+      const playHeader = document.createElement('div');
+      playHeader.className = 'header-play';
+      
+      const titleHeader = document.createElement('div');
+      titleHeader.className = 'header-title';
+      titleHeader.textContent = 'Episode';
+      
+      const completeHeader = document.createElement('div');
+      completeHeader.className = 'header-complete';
+      completeHeader.textContent = 'Complete';
+      
+      header.appendChild(playHeader);
+      header.appendChild(titleHeader);
+      header.appendChild(completeHeader);
+      episodesContainer.appendChild(header);
+
       feedContainer.appendChild(episodesContainer);
 
       // Add click handler for expand/collapse

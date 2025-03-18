@@ -1,5 +1,4 @@
 
-- Add a button to download and upload current config
 - somehow make a feature so that the plugin can read from the current page.
 IF there are audio files there, consider it a "Web feed". IF it is an RSS page or the page 
 contains the link to an RSS, use that RSS. 
@@ -7,7 +6,6 @@ contains the link to an RSS, use that RSS.
 - Make it possible to manually enter a "Web feed"
 - sort the feeds
 - split CSS to a separate file
-- makr played, then the episode turns gray and the next in time is listed, yes, this can then exceed the max number per pod.
 Right now, I would like to continue the RSS approach, but we may add some other mechanism in the future. The next feature I would like is a way to download and upload the current config. Essentially a list of Feeds. The config format should be prepared to add more information, for example which episodes has been played.
 - access to RSS catalog
 - bug player windows does not show scroll bar although the content is bigger than the window
@@ -15,6 +13,7 @@ Right now, I would like to continue the RSS approach, but we may add some other 
 - See this: https://feedsearch.dev/api/v1/search?result=true&url=sverigesradio.se
 - or this: https://gpodder.net/directory/
 -image icon per feed
+- maybe just tell the user where to go to find RSS:es?
 
 
 works
