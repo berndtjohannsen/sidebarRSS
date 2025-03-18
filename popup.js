@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
           feeds.push(feedUrl);
           chrome.storage.local.set({ feeds });
           addFeedToUI(feedUrl);
-          parseFeeds([feedUrl]);
+          parseFeeds(feeds); // Parse all feeds to show complete list
         }
       });
 
@@ -88,7 +88,10 @@ document.addEventListener('DOMContentLoaded', () => {
       refreshBtn.textContent = '↻';
       refreshBtn.title = 'Refresh feed';
       refreshBtn.addEventListener('click', () => {
-        parseFeeds([feedUrl]);
+        chrome.storage.local.get('feeds', (data) => {
+          const feeds = data.feeds || [];
+          parseFeeds(feeds); // Refresh all feeds to maintain order
+        });
       });
 
       const removeBtn = document.createElement('button');
@@ -103,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
             feeds.splice(index, 1);
             chrome.storage.local.set({ feeds }, () => {
               li.remove();
-              parseFeeds(feeds); // Refresh audio list
+              parseFeeds(feeds); // Parse remaining feeds
             });
           }
         });
