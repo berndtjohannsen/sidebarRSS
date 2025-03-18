@@ -8,6 +8,7 @@ contains the link to an RSS, use that RSS.
 - sort the feeds
 - split CSS to a separate file
 - MAybe a better indication what urrent file is played
+- RSS with autehntication
 
 works
 https://feeds.npr.org/510298/podcast.xml
