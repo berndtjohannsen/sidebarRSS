@@ -1,4 +1,5 @@
 # sidebarRSS
+This project is no miore maintained. It is renamed to TiddelipomPlayer with a new repository
 RSS audio player as chrome (only) extension
 This is still very much work in progress
 
